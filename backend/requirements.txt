@@ -1,3 +1,8 @@
 python-dotenv
 rasterio
 numpy
+rasterio
+numpy
+scipy
+geopandas
+shapely
