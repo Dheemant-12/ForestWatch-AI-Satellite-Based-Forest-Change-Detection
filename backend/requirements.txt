@@ -6,3 +6,8 @@ numpy
 scipy
 geopandas
 shapely
+fastapi
+uvicorn
+geopandas
+shapely
+pyproj
