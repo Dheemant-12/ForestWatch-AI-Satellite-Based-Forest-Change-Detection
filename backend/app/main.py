@@ -1,4 +1,7 @@
+import pandas as pd
 
+from fastapi.responses import Response
+from fastapi import Query
 from pathlib import Path
 import json
 
@@ -195,6 +198,54 @@ def get_detection_summary():
 # --------------------------------------------------
 # GET INDIVIDUAL DETECTION
 # --------------------------------------------------
+@app.get("/api/v1/detections/export/csv")
+def export_detections_csv(
+    min_area_ha: float = Query(default=0, ge=0)
+):
+    """
+    Export detection records as a downloadable CSV file.
+    """
+
+    gdf = load_detections()
+
+    if gdf.empty:
+        raise HTTPException(
+            status_code=404,
+            detail="No detection records available for export."
+        )
+
+    # Apply minimum-area filtering when area_ha exists.
+    if min_area_ha > 0:
+        if "area_ha" not in gdf.columns:
+            raise HTTPException(
+                status_code=400,
+                detail="Area information is unavailable."
+            )
+
+        gdf = gdf[gdf["area_ha"] >= min_area_ha]
+
+    if gdf.empty:
+        raise HTTPException(
+            status_code=404,
+            detail="No detections match the selected area filter."
+        )
+
+    # Preserve spatial information as WKT text.
+    export_df = pd.DataFrame(gdf.drop(columns="geometry"))
+
+    export_df["geometry_wkt"] = gdf.geometry.to_wkt()
+
+    csv_content = export_df.to_csv(index=False)
+
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": (
+                "attachment; filename=forestwatch_detections.csv"
+            )
+        }
+    )
 
 @app.get("/api/v1/detections/{detection_id}")
 def get_detection(detection_id: str):
