@@ -1,6 +1,6 @@
 
 import { useEffect, useMemo, useState } from "react";
-
+import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import {
   MapContainer,
   TileLayer,
