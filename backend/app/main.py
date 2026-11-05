@@ -342,3 +342,61 @@ def filter_detections(
             status_code=500,
             detail=f"Unable to filter detections: {error}",
         )
+@app.get("/api/v1/analytics")
+def get_analytics():
+    """
+    Return statistical information about candidate detections.
+    """
+
+    gdf = load_detections()
+
+    if gdf.empty:
+        return {
+            "total_detections": 0,
+            "total_candidate_area_ha": 0,
+            "average_area_ha": 0,
+            "largest_detection_ha": 0,
+            "smallest_detection_ha": 0,
+            "area_distribution": {
+                "under_1_ha": 0,
+                "1_to_5_ha": 0,
+                "5_to_10_ha": 0,
+                "over_10_ha": 0
+            },
+            "message": "No detection records available."
+        }
+
+    if "area_ha" not in gdf.columns:
+        raise HTTPException(
+            status_code=400,
+            detail="Area information is unavailable. "
+                   "Regenerate the detection GeoJSON with area_ha."
+        )
+
+    # Ignore missing, infinite, and negative area values.
+    import numpy as np
+
+    areas = pd.to_numeric(gdf["area_ha"], errors="coerce")
+    areas = areas.replace([np.inf, -np.inf], np.nan).dropna()
+    areas = areas[areas >= 0]
+
+    if areas.empty:
+        raise HTTPException(
+            status_code=400,
+            detail="No valid area measurements are available."
+        )
+
+    return {
+        "total_detections": int(len(gdf)),
+        "detections_with_valid_area": int(len(areas)),
+        "total_candidate_area_ha": round(float(areas.sum()), 2),
+        "average_area_ha": round(float(areas.mean()), 2),
+        "largest_detection_ha": round(float(areas.max()), 2),
+        "smallest_detection_ha": round(float(areas.min()), 2),
+        "area_distribution": {
+            "under_1_ha": int((areas < 1).sum()),
+            "1_to_5_ha": int(((areas >= 1) & (areas < 5)).sum()),
+            "5_to_10_ha": int(((areas >= 5) & (areas < 10)).sum()),
+            "over_10_ha": int((areas >= 10).sum())
+        }
+    }
