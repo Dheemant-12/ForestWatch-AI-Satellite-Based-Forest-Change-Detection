@@ -1,0 +1,127 @@
+.detection-details {
+  background: var(--card-background, #ffffff);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 22px;
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--text-color, #20252b);
+  margin-top: 22px;
+}
+
+.detection-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.detection-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #26966c;
+}
+
+.detection-details-header h2 {
+  margin: 8px 0 14px;
+  font-size: 21px;
+}
+
+.detection-close {
+  border: none;
+  background: #edf0f2;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  font-size: 23px;
+  cursor: pointer;
+}
+
+.detection-status {
+  display: inline-block;
+  background: #e2f5eb;
+  color: #16764c;
+  border-radius: 20px;
+  padding: 7px 12px;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.detection-primary {
+  background: #f3f7f5;
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.detection-primary span {
+  color: #69737d;
+  font-size: 13px;
+}
+
+.detection-primary strong {
+  font-size: 20px;
+}
+
+.detection-details h3 {
+  font-size: 15px;
+  margin: 18px 0 12px;
+}
+
+.detection-property-list {
+  display: grid;
+}
+
+.detection-property {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid #edf0f2;
+  text-transform: capitalize;
+  font-size: 13px;
+}
+
+.detection-property span {
+  color: #7b838c;
+}
+
+.detection-property strong {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.detection-geometry {
+  margin-top: 18px;
+}
+
+.detection-geometry p {
+  font-size: 13px;
+  color: #69737d;
+}
+
+.detection-disclaimer {
+  margin-top: 20px;
+  padding: 12px;
+  background: #fff8e8;
+  color: #806323;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .detection-property {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .detection-property strong {
+    text-align: left;
+  }
+}

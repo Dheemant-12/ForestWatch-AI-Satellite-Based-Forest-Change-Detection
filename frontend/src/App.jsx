@@ -1,6 +1,9 @@
-
 import { useEffect, useMemo, useState } from "react";
+import L from "leaflet";
+
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
+import DetectionDetails from "./components/DetectionDetails";
+
 import {
   MapContainer,
   TileLayer,
@@ -22,7 +25,7 @@ function FitDetections({ data }) {
   useEffect(() => {
     if (!data?.features?.length) return;
 
-    const layer = window.L.geoJSON(data);
+    const layer = L.geoJSON(data);
     const bounds = layer.getBounds();
 
     if (bounds.isValid()) {
@@ -35,18 +38,18 @@ function FitDetections({ data }) {
 
 
 function App() {
-
   const [detections, setDetections] = useState(null);
   const [summary, setSummary] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [filter, setFilter] = useState("all");
   const [selected, setSelected] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
 
   async function fetchDashboardData() {
-
     try {
       setLoading(true);
       setError("");
@@ -77,13 +80,9 @@ function App() {
       setLastUpdated(new Date());
 
     } catch (err) {
-
-      setError(err.message);
-
+      setError(err.message || "Unable to load dashboard data.");
     } finally {
-
       setLoading(false);
-
     }
   }
 
@@ -100,7 +99,6 @@ function App() {
 
 
   const filteredFeatures = useMemo(() => {
-
     if (filter === "all") {
       return features;
     }
@@ -117,7 +115,6 @@ function App() {
         feature.properties?.status ===
         "Potential vegetation loss"
     );
-
   }, [features, filter]);
 
 
@@ -135,21 +132,13 @@ function App() {
   }
 
 
-  function getProperties(feature) {
-    return feature?.properties || {};
-  }
-
-
-  const selectedProperties = getProperties(selected);
-
-
   return (
     <div className="app">
 
       <header className="topbar">
 
         <div className="brand">
-          <div className="brand-icon">🌳</div>
+          <div className="brand-icon">??</div>
 
           <div>
             <h1>ForestWatch AI</h1>
@@ -187,7 +176,7 @@ function App() {
             onClick={fetchDashboardData}
             disabled={loading}
           >
-            {loading ? "Loading..." : "↻ Refresh Data"}
+            {loading ? "Loading..." : "? Refresh Data"}
           </button>
 
         </section>
@@ -253,6 +242,12 @@ function App() {
         )}
 
 
+        {/* DAY 15: ANALYTICS DASHBOARD */}
+        <section className="analytics-section">
+          <AnalyticsDashboard />
+        </section>
+
+
         <section className="map-section">
 
           <div className="section-heading">
@@ -265,7 +260,7 @@ function App() {
             </div>
 
             <span className="map-badge">
-              ● API-connected
+              ? API-connected
             </span>
 
           </div>
@@ -283,8 +278,10 @@ function App() {
               onChange={event => setFilter(event.target.value)}
             >
               <option value="all">All detections</option>
-              <option value="area">Area ≥ 1 hectare</option>
-              <option value="candidate">Potential loss candidates</option>
+              <option value="area">Area = 1 hectare</option>
+              <option value="candidate">
+                Potential loss candidates
+              </option>
             </select>
 
           </div>
@@ -300,7 +297,7 @@ function App() {
             >
 
               <TileLayer
-                attribution='&copy; OpenStreetMap contributors'
+                attribution="&copy; OpenStreetMap contributors"
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
 
@@ -316,12 +313,12 @@ function App() {
                   fillOpacity: 0.4,
                 }}
                 onEachFeature={(feature, layer) => {
-
-                  const properties =
-                    feature.properties || {};
+                  const properties = feature.properties || {};
 
                   layer.bindPopup(`
-                    <strong>${properties.detection_id || "Detection"}</strong>
+                    <strong>
+                      ${properties.detection_id || "Detection"}
+                    </strong>
                     <br/>
                     ${properties.status || "Potential vegetation loss"}
                     <br/>
@@ -331,7 +328,6 @@ function App() {
                   layer.on("click", () => {
                     openDetection(feature);
                   });
-
                 }}
               />
 
@@ -340,6 +336,7 @@ function App() {
             </MapContainer>
 
           )}
+
 
           {!loading && !error && filteredFeatures.length === 0 && (
             <p className="empty-state">
@@ -386,12 +383,9 @@ function App() {
                 <tbody>
 
                   {filteredFeatures.map((feature, index) => {
-
-                    const properties =
-                      feature.properties || {};
+                    const properties = feature.properties || {};
 
                     return (
-
                       <tr key={properties.detection_id || index}>
 
                         <td>
@@ -420,9 +414,7 @@ function App() {
                         </td>
 
                       </tr>
-
                     );
-
                   })}
 
 
@@ -445,64 +437,19 @@ function App() {
         </section>
 
 
+        {/* DAY 16: REUSABLE DETECTION DETAILS */}
         {selected && (
-
-          <section className="details-panel">
-
-            <div className="section-heading">
-
-              <div>
-                <h3>Detection Details</h3>
-                <p>
-                  {selectedProperties.detection_id || "Selected detection"}
-                </p>
-              </div>
-
-              <button
-                className="view-button"
-                onClick={() => setSelected(null)}
-              >
-                Close
-              </button>
-
-            </div>
-
-            <div className="details-grid">
-
-              <div>
-                <span>Detection ID</span>
-                <strong>
-                  {selectedProperties.detection_id || "N/A"}
-                </strong>
-              </div>
-
-              <div>
-                <span>Status</span>
-                <strong>
-                  {selectedProperties.status || "Potential loss"}
-                </strong>
-              </div>
-
-              <div>
-                <span>Area</span>
-                <strong>
-                  {selectedProperties.area_ha != null
-                    ? `${selectedProperties.area_ha} ha`
-                    : "Not available"}
-                </strong>
-              </div>
-
-            </div>
-
-          </section>
-
+          <DetectionDetails
+            detection={selected}
+            onClose={() => setSelected(null)}
+          />
         )}
 
 
         <footer>
 
           <p>
-            ForestWatch AI · Research Prototype
+            ForestWatch AI � Research Prototype
           </p>
 
           <p>
