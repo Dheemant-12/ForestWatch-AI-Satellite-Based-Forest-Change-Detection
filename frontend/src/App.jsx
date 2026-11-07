@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import L from "leaflet";
 
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
+import GeoJSONExport from "./components/GeoJSONExport";
 import DetectionDetails from "./components/DetectionDetails";
 
 import {
@@ -289,6 +290,8 @@ function App() {
 
           {!loading && !error && (
 
+            <GeoJSONExport />
+
             <MapContainer
               center={[17.9, 79.5]}
               zoom={7}
@@ -449,7 +452,7 @@ function App() {
         <footer>
 
           <p>
-            ForestWatch AI · Research Prototype
+            ForestWatch AI Â· Research Prototype
           </p>
 
           <p>
@@ -471,4 +474,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;
