@@ -1,134 +1,227 @@
 
-import json
 import os
-from datetime import datetime, timezone
 from pathlib import Path
 
 import ee
 from dotenv import load_dotenv
 
 
-# Resolve paths from the repository root.
+# --------------------------------------------------
+# PROJECT CONFIGURATION
+# --------------------------------------------------
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(PROJECT_ROOT / ".env")
 
-OUTPUT_DIR = PROJECT_ROOT / "data" / "processed"
-OUTPUT_FILE = OUTPUT_DIR / "sentinel2_query_results.json"
-
-# Initial study area: a rectangular sample region in Telangana.
-# Coordinates are [west, south, east, north].
 ROI_BOUNDS = [80.0, 17.8, 80.6, 18.4]
 
 START_DATE = "2025-01-01"
-END_DATE = "2025-03-01"  # Earth Engine end date is exclusive.
+END_DATE = "2025-03-01"
+
 MAX_CLOUD_PERCENT = 30
 
 COLLECTION_ID = "COPERNICUS/S2_SR_HARMONIZED"
 
+EXPORT_FOLDER = "ForestWatch_AI"
+
+EXPORT_NAME = "telangana_cloud_masked_composite"
+
+
+# --------------------------------------------------
+# EARTH ENGINE INITIALIZATION
+# --------------------------------------------------
 
 def initialize_earth_engine() -> None:
-    """Initialize Earth Engine using the configured Cloud project."""
     project_id = os.getenv("EARTH_ENGINE_PROJECT")
 
     if not project_id:
         raise RuntimeError(
-            "EARTH_ENGINE_PROJECT is missing. "
-            "Set it in the project-root .env file."
+            "EARTH_ENGINE_PROJECT is missing from .env"
         )
 
     ee.Initialize(project=project_id)
 
 
-def query_satellite_imagery() -> dict:
-    """Query Sentinel-2 images and return acquisition metadata."""
-    roi = ee.Geometry.Rectangle(ROI_BOUNDS)
+# --------------------------------------------------
+# REGION OF INTEREST
+# --------------------------------------------------
 
+def get_region():
+    return ee.Geometry.Rectangle(ROI_BOUNDS)
+
+
+# --------------------------------------------------
+# CLOUD AND SHADOW MASKING
+# --------------------------------------------------
+
+def mask_clouds(image):
+    scl = image.select("SCL")
+
+    # Exclude defective pixels, cloud shadows,
+    # unclassified pixels, clouds, cirrus and snow.
+    invalid_classes = (
+        scl.eq(1)
+        .Or(scl.eq(3))
+        .Or(scl.eq(7))
+        .Or(scl.eq(8))
+        .Or(scl.eq(9))
+        .Or(scl.eq(10))
+        .Or(scl.eq(11))
+    )
+
+    valid_mask = invalid_classes.Not()
+
+    return (
+        image.updateMask(valid_mask)
+        .copyProperties(
+            image,
+            ["system:time_start", "system:index"]
+        )
+    )
+
+
+# --------------------------------------------------
+# SATELLITE COLLECTION
+# --------------------------------------------------
+
+def get_satellite_collection(region):
     collection = (
         ee.ImageCollection(COLLECTION_ID)
-        .filterBounds(roi)
+        .filterBounds(region)
         .filterDate(START_DATE, END_DATE)
         .filter(
             ee.Filter.lte(
                 "CLOUDY_PIXEL_PERCENTAGE",
-                MAX_CLOUD_PERCENT,
+                MAX_CLOUD_PERCENT
             )
         )
-        .sort("system:time_start")
     )
+
+    return collection
+
+
+# --------------------------------------------------
+# CREATE CLEAN COMPOSITE
+# --------------------------------------------------
+
+def create_composite(collection):
+    cleaned_collection = collection.map(mask_clouds)
+
+    composite = (
+        cleaned_collection
+        .median()
+        .clip(get_region())
+    )
+
+    return composite
+
+
+# --------------------------------------------------
+# VALID PIXEL COVERAGE
+# --------------------------------------------------
+
+def calculate_valid_coverage(composite, region):
+    valid_area = (
+        ee.Image.pixelArea()
+        .updateMask(composite.select("B8").mask())
+        .rename("valid_area")
+    )
+
+    total_area = ee.Image.pixelArea().rename("total_area")
+
+    area_image = valid_area.addBands(total_area)
+
+    statistics = area_image.reduceRegion(
+        reducer=ee.Reducer.sum(),
+        geometry=region,
+        scale=20,
+        maxPixels=1e10,
+        bestEffort=True
+    )
+
+    values = statistics.getInfo()
+
+    valid = values.get("valid_area") or 0
+    total = values.get("total_area") or 0
+
+    if total == 0:
+        return 0.0
+
+    return (valid / total) * 100
+
+
+# --------------------------------------------------
+# EXPORT COMPOSITE TO GOOGLE DRIVE
+# --------------------------------------------------
+
+def export_composite(composite, region):
+    export_image = composite.select(
+        ["B2", "B3", "B4", "B8"]
+    )
+
+    task = ee.batch.Export.image.toDrive(
+        image=export_image,
+        description=EXPORT_NAME,
+        folder=EXPORT_FOLDER,
+        fileNamePrefix=EXPORT_NAME,
+        region=region,
+        scale=10,
+        maxPixels=1e10,
+        fileFormat="GeoTIFF"
+    )
+
+    task.start()
+
+    print("\nExport task submitted.")
+    print(f"Task ID: {task.id}")
+    print(f"Google Drive folder: {EXPORT_FOLDER}")
+
+
+# --------------------------------------------------
+# MAIN EXECUTION
+# --------------------------------------------------
+
+def main():
+    print("=" * 55)
+    print("FORESTWATCH AI - CLOUD MASKING PIPELINE")
+    print("=" * 55)
+
+    print("\nInitializing Earth Engine...")
+    initialize_earth_engine()
+
+    region = get_region()
+
+    print("Retrieving Sentinel-2 collection...")
+
+    collection = get_satellite_collection(region)
 
     image_count = collection.size().getInfo()
 
-    results = {
-        "dataset": COLLECTION_ID,
-        "region": "Telangana, India (initial sample ROI)",
-        "roi_bounds": ROI_BOUNDS,
-        "start_date": START_DATE,
-        "end_date_exclusive": END_DATE,
-        "max_scene_cloud_percent": MAX_CLOUD_PERCENT,
-        "image_count": image_count,
-        "images": [],
-    }
+    print(f"Matching satellite images: {image_count}")
 
     if image_count == 0:
-        print("No images matched the current filters.")
-        return results
+        print("No matching images. Check date and region filters.")
+        return
 
-    timestamps = (
-        collection.aggregate_array("system:time_start").getInfo()
-    )
-    cloud_percentages = (
-        collection.aggregate_array(
-            "CLOUDY_PIXEL_PERCENTAGE"
-        ).getInfo()
-    )
-    image_ids = (
-        collection.aggregate_array("system:index").getInfo()
-    )
+    print("\nApplying cloud and shadow masks...")
 
-    for image_id, timestamp, cloud_percent in zip(
-        image_ids, timestamps, cloud_percentages
-    ):
-        acquired_at = datetime.fromtimestamp(
-            timestamp / 1000,
-            tz=timezone.utc,
-        )
+    composite = create_composite(collection)
 
-        results["images"].append(
-            {
-                "image_id": image_id,
-                "acquired_at_utc": acquired_at.isoformat(),
-                "scene_cloud_percent": cloud_percent,
-            }
-        )
+    print("Calculating valid-pixel coverage...")
 
-    return results
-
-
-def main() -> None:
-    print("Initializing Google Earth Engine...")
-    initialize_earth_engine()
-
-    print("Querying Sentinel-2 imagery...")
-    results = query_satellite_imagery()
-
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    OUTPUT_FILE.write_text(
-        json.dumps(results, indent=2),
-        encoding="utf-8",
+    coverage = calculate_valid_coverage(
+        composite,
+        region
     )
 
-    print(f"\nDataset: {results['dataset']}")
-    print(f"Date range: {START_DATE} to {END_DATE}")
-    print(f"Matching images: {results['image_count']}")
+    print(f"Valid pixel coverage: {coverage:.2f}%")
 
-    for image in results["images"]:
-        print(
-            f"{image['acquired_at_utc']} | "
-            f"Cloud: {image['scene_cloud_percent']}% | "
-            f"ID: {image['image_id']}"
-        )
+    print("\nSubmitting GeoTIFF export...")
 
-    print(f"\nResults saved to: {OUTPUT_FILE}")
+    export_composite(composite, region)
+
+    print("\nPipeline execution completed.")
+    print("Check Earth Engine Tasks for export progress.")
 
 
 if __name__ == "__main__":
