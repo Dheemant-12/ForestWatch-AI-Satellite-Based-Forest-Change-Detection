@@ -6,3 +6,18 @@
 - Confirmed that processing scripts are present.
 - Identified missing GeoTIFF and GeoJSON output files.
 - Next priority: complete the Google Earth Engine export and generate detection polygons.
+
+## Day 23 - November 12, 2026
+
+### Upcoming Development Tasks
+
+- Configure Google Earth Engine authentication.
+- Generate Sentinel-2 NDVI composites.
+- Export forest-change analysis as GeoTIFF.
+- Convert potential forest-loss regions into GeoJSON.
+- Connect real detection data to the FastAPI backend.
+- Validate detection results using satellite imagery.
+
+### Current Priority
+
+Complete the satellite data pipeline before expanding dashboard functionality.
