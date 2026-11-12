@@ -21,3 +21,16 @@
 ### Current Priority
 
 Complete the satellite data pipeline before expanding dashboard functionality.
+
+## Day 24 - Next Development Milestone
+
+### Focus: Satellite Data Pipeline
+
+- Verify Google Earth Engine authentication.
+- Run the Sentinel-2 change-detection workflow.
+- Generate the forest-change GeoTIFF export.
+- Generate detection polygons in GeoJSON.
+- Verify that real detection data reaches the FastAPI backend.
+
+### Priority
+Complete and validate the satellite data pipeline before adding more dashboard features.
