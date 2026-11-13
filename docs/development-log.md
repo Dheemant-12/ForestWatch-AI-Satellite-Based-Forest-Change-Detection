@@ -34,3 +34,14 @@ Complete the satellite data pipeline before expanding dashboard functionality.
 
 ### Priority
 Complete and validate the satellite data pipeline before adding more dashboard features.
+
+## Day 25 - November 13, 2026
+
+### Development Progress
+- Reviewed the ForestWatch AI project structure.
+- Continued tracking satellite-processing requirements.
+- Prioritized Google Earth Engine integration.
+- Planned the next stage of GeoTIFF and GeoJSON generation.
+
+### Next Milestone
+Generate and validate real satellite-based forest-change detections.
