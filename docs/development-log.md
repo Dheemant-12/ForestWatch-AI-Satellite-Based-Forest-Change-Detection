@@ -45,3 +45,15 @@ Complete and validate the satellite data pipeline before adding more dashboard f
 
 ### Next Milestone
 Generate and validate real satellite-based forest-change detections.
+
+## Day 26 - Development Priorities
+
+### Upcoming Tasks
+- Complete Google Earth Engine authentication.
+- Generate Sentinel-2 satellite composites.
+- Export forest-change analysis as GeoTIFF.
+- Generate GeoJSON detection polygons.
+- Validate detection results before dashboard integration.
+
+### Main Objective
+Get the real satellite data pipeline working end to end.
