@@ -57,3 +57,13 @@ Generate and validate real satellite-based forest-change detections.
 
 ### Main Objective
 Get the real satellite data pipeline working end to end.
+
+## Day 27 - November 14, 2026
+
+### Project Maintenance
+- Reviewed the current ForestWatch AI development status.
+- Recorded the pending satellite data pipeline work.
+- Identified GeoTIFF generation and GeoJSON detection extraction as the next priorities.
+
+### Next Goal
+Complete the Google Earth Engine export workflow.
