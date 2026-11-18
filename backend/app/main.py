@@ -632,98 +632,6 @@ def get_detection_timeline():
     }
 
 
-@app.get("/api/v1/detections/{detection_id}")
-
-def get_detection(detection_id: str):
-
-
-
-    try:
-
-
-
-        gdf = load_detections()
-
-
-
-        if gdf.empty:
-
-            raise HTTPException(
-
-                status_code=404,
-
-                detail="No detections available.",
-
-            )
-
-
-
-        result = gdf[
-
-            gdf["detection_id"] == detection_id
-
-        ]
-
-
-
-        if result.empty:
-
-            raise HTTPException(
-
-                status_code=404,
-
-                detail=f"Detection {detection_id} not found.",
-
-            )
-
-
-
-        return json.loads(
-
-            result.to_json(drop_id=True)
-
-        )
-
-
-
-    except FileNotFoundError as error:
-
-
-
-        raise HTTPException(
-
-            status_code=404,
-
-            detail=str(error),
-
-        )
-
-
-
-    except HTTPException:
-
-        raise
-
-
-
-    except Exception as error:
-
-
-
-        raise HTTPException(
-
-            status_code=500,
-
-            detail=f"Unable to retrieve detection: {error}",
-
-        )
-
-
-
-
-
-# --------------------------------------------------
-
 # FILTER DETECTIONS BY MINIMUM AREA
 
 # --------------------------------------------------
@@ -1049,3 +957,100 @@ def get_analytics():
         }
 
     }
+
+
+# --------------------------------------------------
+# GET INDIVIDUAL DETECTION — KEEP AFTER STATIC ROUTES
+# --------------------------------------------------
+
+@app.get("/api/v1/detections/{detection_id}")
+
+def get_detection(detection_id: str):
+
+
+
+    try:
+
+
+
+        gdf = load_detections()
+
+
+
+        if gdf.empty:
+
+            raise HTTPException(
+
+                status_code=404,
+
+                detail="No detections available.",
+
+            )
+
+
+
+        result = gdf[
+
+            gdf["detection_id"] == detection_id
+
+        ]
+
+
+
+        if result.empty:
+
+            raise HTTPException(
+
+                status_code=404,
+
+                detail=f"Detection {detection_id} not found.",
+
+            )
+
+
+
+        return json.loads(
+
+            result.to_json(drop_id=True)
+
+        )
+
+
+
+    except FileNotFoundError as error:
+
+
+
+        raise HTTPException(
+
+            status_code=404,
+
+            detail=str(error),
+
+        )
+
+
+
+    except HTTPException:
+
+        raise
+
+
+
+    except Exception as error:
+
+
+
+        raise HTTPException(
+
+            status_code=500,
+
+            detail=f"Unable to retrieve detection: {error}",
+
+        )
+
+
+
+
+
+# --------------------------------------------------
