@@ -930,6 +930,38 @@ def get_analytics():
 # GET INDIVIDUAL DETECTION — KEEP AFTER STATIC ROUTES
 # --------------------------------------------------
 
+@app.get("/api/v1/detections/page")
+def get_paginated_detections(
+    limit: int = Query(default=100, ge=1, le=1000),
+    offset: int = Query(default=0, ge=0),
+):
+    """Return detection records in pages."""
+
+    try:
+        gdf = load_detections()
+
+        total = len(gdf)
+        page = gdf.iloc[offset:offset + limit].copy()
+
+        return {
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "has_next": offset + len(page) < total,
+            "records_returned": len(page),
+            "data": json.loads(page.to_json(drop_id=True)),
+        }
+
+    except FileNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to retrieve paginated detections: {error}",
+        )
+
+
 @app.get("/api/v1/detections/{detection_id}")
 
 def get_detection(detection_id: str):
