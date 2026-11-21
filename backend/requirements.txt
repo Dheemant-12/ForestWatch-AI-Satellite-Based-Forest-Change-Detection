@@ -11,3 +11,4 @@ uvicorn
 geopandas
 shapely
 pyproj
+earthengine-api
