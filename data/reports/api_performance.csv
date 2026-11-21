@@ -1,0 +1,6 @@
+endpoint,path,requests,average_ms,median_ms,minimum_ms,maximum_ms,successful_responses,failed_responses,status_codes
+health,/health,20,1.32,1.26,1.04,2.24,20,0,200
+detections,/api/v1/detections,20,1.93,1.79,1.0,4.14,0,20,404
+summary,/api/v1/detections/summary,20,1.89,1.64,1.06,4.52,0,20,404
+pagination,/api/v1/detections/page?limit=100&offset=0,20,2.42,2.06,1.28,5.06,0,20,404
+quality,/api/v1/detections/quality,20,1.92,1.88,0.81,4.48,0,20,404
