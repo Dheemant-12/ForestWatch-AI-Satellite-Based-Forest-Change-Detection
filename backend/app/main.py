@@ -1,4 +1,4 @@
-import pandas as pd
+﻿import pandas as pd
 
 
 
@@ -8,7 +8,8 @@ from fastapi import Query
 
 from pathlib import Path
 
-import json\nimport hashlib
+import json
+import hashlib
 
 
 
@@ -927,7 +928,7 @@ def get_analytics():
 
 
 # --------------------------------------------------
-# GET INDIVIDUAL DETECTION — KEEP AFTER STATIC ROUTES
+# GET INDIVIDUAL DETECTION â€” KEEP AFTER STATIC ROUTES
 # --------------------------------------------------
 
 @app.get("/api/v1/detections/page")
