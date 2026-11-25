@@ -1,4 +1,4 @@
-﻿import pandas as pd
+import pandas as pd
 
 
 
@@ -188,6 +188,11 @@ def load_detections():
 
 # --------------------------------------------------
 
+
+
+@app.get("/")
+def root():
+    return {"status": "running", "project": "ForestWatch AI"}
 
 
 @app.get("/health")

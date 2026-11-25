@@ -8,7 +8,7 @@ function StatCard({ title, value, unit }) {
   return (
     <div className="analytics-card">
       <p className="analytics-card-title">{title}</p>
-      <h2>{value ?? "—"}<span className="analytics-unit"> {unit}</span></h2>
+      <h2>{value ?? "â€”"}<span className="analytics-unit"> {unit}</span></h2>
     </div>
   );
 }
@@ -62,8 +62,8 @@ export default function AnalyticsDashboard() {
 
   const chartItems = [
     { label: "Under 1 ha", value: distribution.under_1_ha ?? 0 },
-    { label: "1–5 ha", value: distribution["1_to_5_ha"] ?? 0 },
-    { label: "5–10 ha", value: distribution["5_to_10_ha"] ?? 0 },
+    { label: "1â€“5 ha", value: distribution["1_to_5_ha"] ?? 0 },
+    { label: "5â€“10 ha", value: distribution["5_to_10_ha"] ?? 0 },
     { label: "Over 10 ha", value: distribution.over_10_ha ?? 0 },
   ];
 

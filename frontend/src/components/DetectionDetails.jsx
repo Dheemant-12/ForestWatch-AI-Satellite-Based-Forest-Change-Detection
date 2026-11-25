@@ -31,7 +31,7 @@ export default function DetectionDetails({ detection, onClose }) {
           onClick={onClose}
           aria-label="Close detection details"
         >
-          ×
+          Ã—
         </button>
       </div>
 

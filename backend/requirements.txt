@@ -1,14 +1,10 @@
 python-dotenv
 rasterio
 numpy
-rasterio
-numpy
 scipy
 geopandas
 shapely
 fastapi
 uvicorn
-geopandas
-shapely
 pyproj
 earthengine-api

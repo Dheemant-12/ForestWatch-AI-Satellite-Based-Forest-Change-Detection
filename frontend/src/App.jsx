@@ -290,7 +290,7 @@ function App() {
 
 
           {!loading && !error && (
-
+            <>
             <GeoJSONExport />
 
             <DetectionTimeline />
@@ -340,7 +340,7 @@ function App() {
               <ScaleControl position="bottomleft" />
 
             </MapContainer>
-
+            </>
           )}
 
 

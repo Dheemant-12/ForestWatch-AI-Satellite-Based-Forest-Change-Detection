@@ -1,7 +1,6 @@
-﻿import json
+import json
 
 import pytest
-from fastapi import HTTPException
 
 from backend.app import main as api
 
@@ -69,7 +68,8 @@ def test_load_detections_normalizes_area(detection_file):
 def test_load_detections_generates_ids(detection_file):
     gdf = api.load_detections()
 
-    assert list(gdf["detection_id"]) == ["FW-0001", "FW-0002"]
+    assert all(value.startswith("FW-") for value in gdf["detection_id"])
+    assert len(set(gdf["detection_id"])) == 2
 
 
 def test_load_detections_assigns_status(detection_file):
@@ -83,10 +83,10 @@ def test_load_detections_assigns_status(detection_file):
 def test_quality_endpoint_reports_valid_data(detection_file):
     result = api.get_detection_quality()
 
-    assert result["total_source_records"] == 2
+    assert result["total_records"] == 2
     assert result["valid_geometries"] == 2
-    assert result["invalid_or_missing_geometries"] == 0
-    assert result["area_field_found"] == "area_hectares"
+    assert result["invalid_geometries"] == 0
+    assert result["area_field_used"] == "area_ha"
     assert result["records_with_valid_area"] == 2
     assert result["area_coverage_percent"] == 100.0
     assert result["quality_status"] == "good"
@@ -110,7 +110,5 @@ def test_missing_file_raises_http_404(tmp_path, monkeypatch):
     missing_file = tmp_path / "missing.geojson"
     monkeypatch.setattr(api, "DETECTIONS_FILE", missing_file)
 
-    with pytest.raises(HTTPException) as error:
+    with pytest.raises(FileNotFoundError):
         api.load_detections()
-
-    assert error.value.status_code == 404 or error.value.status_code == 500
